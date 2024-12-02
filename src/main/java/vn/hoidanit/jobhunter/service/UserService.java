@@ -10,10 +10,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.User;
-import vn.hoidanit.jobhunter.domain.dto.FetchUserDTO;
-import vn.hoidanit.jobhunter.domain.dto.Meta;
-import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
-import vn.hoidanit.jobhunter.domain.dto.UpdateUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResFetchUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResUpdateUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 
 @Service
@@ -38,9 +37,9 @@ public class UserService {
 
     public ResultPaginationDTO fetchAllUsers(Specification<User> spec, Pageable pageable) {
         Page<User> pageUser = this.userRepository.findAll(spec, pageable);
-        List<FetchUserDTO> users = new ArrayList<FetchUserDTO>();
+        List<ResFetchUserDTO> users = new ArrayList<ResFetchUserDTO>();
         for (User user : pageUser.getContent()) {
-            FetchUserDTO userDTO = new FetchUserDTO();
+            ResFetchUserDTO userDTO = new ResFetchUserDTO();
             userDTO.setId(user.getId());
             userDTO.setAddress(user.getAddress());
             userDTO.setAge(user.getAge());
@@ -52,7 +51,7 @@ public class UserService {
             users.add(userDTO);
         }
         ResultPaginationDTO result = new ResultPaginationDTO();
-        Meta meta = new Meta();
+        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta();
         meta.setPage(pageable.getPageNumber() + 1);
         meta.setPageSize(pageable.getPageSize());
         meta.setTotal(pageUser.getTotalElements());
@@ -62,7 +61,7 @@ public class UserService {
         return result;
     }
 
-    public UpdateUserDTO handleUpdateUser(User user) {
+    public ResUpdateUserDTO handleUpdateUser(User user) {
         Optional<User> userOptional = this.fetchUserById(user.getId());
         if (userOptional.isPresent()) {
             userOptional.get().setEmail(user.getEmail());
@@ -72,7 +71,7 @@ public class UserService {
             userOptional.get().setAge(user.getAge());
             userOptional.get().setGender(user.getGender());
             User crrUser = this.handleSaveUser(userOptional.get());
-            UpdateUserDTO userDTO = new UpdateUserDTO();
+            ResUpdateUserDTO userDTO = new ResUpdateUserDTO();
             userDTO.setId(crrUser.getId());
             userDTO.setAddress(crrUser.getAddress());
             userDTO.setAge(crrUser.getAge());

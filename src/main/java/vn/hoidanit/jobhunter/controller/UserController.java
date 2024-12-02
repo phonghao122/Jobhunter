@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.turkraft.springfilter.boot.Filter;
 
 import vn.hoidanit.jobhunter.domain.User;
-import vn.hoidanit.jobhunter.domain.dto.CreateUserDTO;
-import vn.hoidanit.jobhunter.domain.dto.FetchUserDTO;
-import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
-import vn.hoidanit.jobhunter.domain.dto.UpdateUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResFetchUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResUpdateUserDTO;
+import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
@@ -42,14 +42,14 @@ public class UserController {
 
     @PostMapping("/users")
     @ApiMessage("Create a User")
-    public ResponseEntity<CreateUserDTO> createNewUser(@RequestBody User user) throws IdInvalidException {
+    public ResponseEntity<ResCreateUserDTO> createNewUser(@RequestBody User user) throws IdInvalidException {
         if (this.userService.CheckExistEmail(user.getEmail())) {
             throw new IdInvalidException("Email đã tồn tại");
         }
         String hashPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashPassword);
         User crrUser = this.userService.handleSaveUser(user);
-        CreateUserDTO userDTO = new CreateUserDTO();
+        ResCreateUserDTO userDTO = new ResCreateUserDTO();
         userDTO.setId(crrUser.getId());
         userDTO.setAddress(crrUser.getAddress());
         userDTO.setAge(crrUser.getAge());
@@ -76,13 +76,13 @@ public class UserController {
 
     @GetMapping("/users/{id}")
     @ApiMessage("Fetch a User")
-    public ResponseEntity<FetchUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
+    public ResponseEntity<ResFetchUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
         if (!this.userService.CheckExistId(id)) {
             throw new IdInvalidException("User có id = " + id + " không tồn tại");
         }
         Optional<User> user = this.userService.fetchUserById(id);
         if (user.isPresent()) {
-            FetchUserDTO userDTO = new FetchUserDTO();
+            ResFetchUserDTO userDTO = new ResFetchUserDTO();
             userDTO.setId(user.get().getId());
             userDTO.setAddress(user.get().getAddress());
             userDTO.setAge(user.get().getAge());
@@ -105,7 +105,7 @@ public class UserController {
 
     @PutMapping("/users")
     @ApiMessage("Update a User")
-    public ResponseEntity<UpdateUserDTO> putUser(@RequestBody User user) throws IdInvalidException {
+    public ResponseEntity<ResUpdateUserDTO> putUser(@RequestBody User user) throws IdInvalidException {
         if (!this.userService.CheckExistId(user.getId())) {
             throw new IdInvalidException("User có id = " + user.getId() + " không tồn tại");
         }
