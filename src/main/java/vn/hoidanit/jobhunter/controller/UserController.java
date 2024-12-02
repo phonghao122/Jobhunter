@@ -17,11 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.turkraft.springfilter.boot.Filter;
 
+import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.response.ResCompanyDTO;
 import vn.hoidanit.jobhunter.domain.response.ResCreateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResFetchUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUpdateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
+import vn.hoidanit.jobhunter.service.CompanyService;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
@@ -33,11 +36,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final CompanyService companyService;
 
     public UserController(UserService userService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            CompanyService companyService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.companyService = companyService;
     }
 
     @PostMapping("/users")
@@ -48,6 +54,8 @@ public class UserController {
         }
         String hashPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashPassword);
+        Optional<Company> cOptional = this.companyService.fetchCompanyById(user.getCompany().getId());
+        user.setCompany(cOptional.isPresent() ? cOptional.get() : null);
         User crrUser = this.userService.handleSaveUser(user);
         ResCreateUserDTO userDTO = new ResCreateUserDTO();
         userDTO.setId(crrUser.getId());
@@ -57,6 +65,14 @@ public class UserController {
         userDTO.setGender(crrUser.getGender());
         userDTO.setName(crrUser.getName());
         userDTO.setCreatedAt(crrUser.getCreatedAt());
+        if (user.getCompany() != null) {
+            ResCompanyDTO companyDTO = new ResCompanyDTO(
+                    user.getCompany().getId(),
+                    user.getCompany().getName());
+            userDTO.setCompany(companyDTO);
+        } else {
+            userDTO.setCompany(null);
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
     }
 
@@ -91,6 +107,12 @@ public class UserController {
             userDTO.setName(user.get().getName());
             userDTO.setCreatedAt(user.get().getCreatedAt());
             userDTO.setUpdatedAt(user.get().getUpdatedAt());
+            if (user.get().getCompany() != null) {
+                ResCompanyDTO companyDTO = new ResCompanyDTO();
+                userDTO.setCompany(companyDTO);
+            } else {
+                userDTO.setCompany(null);
+            }
             return ResponseEntity.ok(userDTO);
         }
         return null;

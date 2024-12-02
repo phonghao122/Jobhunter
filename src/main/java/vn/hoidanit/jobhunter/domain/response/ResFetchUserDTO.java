@@ -2,7 +2,6 @@ package vn.hoidanit.jobhunter.domain.response;
 
 import java.time.Instant;
 
-
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
@@ -16,7 +15,7 @@ import vn.hoidanit.jobhunter.util.constant.GenderEnum;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResFetchUserDTO {
-     private long id;
+    private long id;
     private String name;
     private String email;
     private int age;
@@ -27,4 +26,5 @@ public class ResFetchUserDTO {
     private String address;
     private Instant createdAt;
     private Instant updatedAt;
+    private ResCompanyDTO company;
 }

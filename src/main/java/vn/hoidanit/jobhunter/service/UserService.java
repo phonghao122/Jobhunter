@@ -9,7 +9,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import vn.hoidanit.jobhunter.domain.Company;
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.response.ResCompanyDTO;
 import vn.hoidanit.jobhunter.domain.response.ResFetchUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResUpdateUserDTO;
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
@@ -18,9 +20,11 @@ import vn.hoidanit.jobhunter.repository.UserRepository;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final CompanyService companyService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, CompanyService companyService) {
         this.userRepository = userRepository;
+        this.companyService = companyService;
     }
 
     public User handleSaveUser(User user) {
@@ -48,6 +52,14 @@ public class UserService {
             userDTO.setName(user.getName());
             userDTO.setCreatedAt(user.getCreatedAt());
             userDTO.setUpdatedAt(user.getUpdatedAt());
+            if (user.getCompany() != null) {
+                ResCompanyDTO companyDTO = new ResCompanyDTO(
+                        user.getCompany().getId(),
+                        user.getCompany().getName());
+                userDTO.setCompany(companyDTO);
+            } else {
+                userDTO.setCompany(null);
+            }
             users.add(userDTO);
         }
         ResultPaginationDTO result = new ResultPaginationDTO();
@@ -70,6 +82,8 @@ public class UserService {
             userOptional.get().setAddress(user.getAddress());
             userOptional.get().setAge(user.getAge());
             userOptional.get().setGender(user.getGender());
+            Optional<Company> cOptional = this.companyService.fetchCompanyById(user.getCompany().getId());
+            user.setCompany(cOptional.isPresent() ? cOptional.get() : null);
             User crrUser = this.handleSaveUser(userOptional.get());
             ResUpdateUserDTO userDTO = new ResUpdateUserDTO();
             userDTO.setId(crrUser.getId());
@@ -78,6 +92,14 @@ public class UserService {
             userDTO.setGender(crrUser.getGender());
             userDTO.setName(crrUser.getName());
             userDTO.setUpdatedAt(crrUser.getUpdatedAt());
+            if (crrUser.getCompany() != null) {
+                ResCompanyDTO companyDTO = new ResCompanyDTO(
+                        crrUser.getCompany().getId(),
+                        crrUser.getCompany().getName());
+                userDTO.setCompany(companyDTO);
+            } else {
+                userDTO.setCompany(null);
+            }
             return userDTO;
         }
         return null;
@@ -105,5 +127,10 @@ public class UserService {
 
     public User fetchUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
+    }
+
+    public List<User> fetchUserByCompany(Company company) {
+        Optional<List<User>> usersOptional = Optional.ofNullable(this.userRepository.findByCompany(company));
+        return usersOptional.isPresent() ? usersOptional.get() : null;
     }
 }
